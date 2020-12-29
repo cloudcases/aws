@@ -8,21 +8,23 @@
 
 
 
-![API Gateway + Custom Authorizer 精细化权限控制](https://static001.infoq.cn/resource/image/16/93/165cc5a74ed8f7f28ef32075e1f6da93.png?x-oss-process=image/crop,x_182,w_1386,h_779/resize,w_726,h_408)
+![API Gateway + Custom Authorizer 精细化权限控制](images/APIGatewayCustomAuthorizer.png)
 
-大多数移动应用或者 Web 应用都有自己的用户身份认证体系。用户的身份信息存储在应用的自有数据库中, API Gateway 定义的不同的资源操作，需要根据应用的用户身份判断是否允许该用户访问这些不同的操作. 例如，一个 bookstore app, 资源 URI 有/books, /books/{usesrid}, 具体的操作有/books/get, books/{userid}/get, books/{userid}/post 等等。 在这个应用中，如果用户的身份为 admin，则该用户可以执行所有操作。对于身份为 user 的用户，则只能访问 /books/{userid}下的所有操作。
+大多数移动应用或者 Web 应用都有自己的用户身份认证体系。用户的身份信息存储在应用的自有数据库中, API Gateway 定义的不同的资源操作，需要根据应用的用户身份判断是否允许该用户访问这些不同的操作. 
 
-对于这样的基于用户身份进行 API 级别的权限控制需求，需要通过自定义授权函数，通过应用的身份认证系统获取用户身份，基于用户身份以及当前执行的操作相结合，在自定义授权函数中判断用户是否有权限执行操作，并构建相应的权限策略返回给 API Gateway。
+例如，一个 bookstore app, 资源 URI 有/books, /books/{usesrid}, 具体的操作有/books/get, books/{userid}/get, books/{userid}/post 等等。 在这个应用中，如果用户的身份为 admin，则该用户可以执行所有操作。对于身份为 user 的用户，则只能访问 /books/{userid}下的所有操作。
+
+对于这样的**基于用户身份进行 API 级别的权限控制**需求，需要通过自定义授权函数，通过应用的身份认证系统获取用户身份，基于用户身份以及当前执行的操作相结合，在自定义授权函数中判断用户是否有权限执行操作，并构建相应的权限策略返回给 API Gateway。
 
 
 
 ## 实验前提
 
-1. 本文使用AWS控制台创建 RDS，API Gateway，Lambda 函数。假设您对使用控制台创建这些服务有一定的了解
-2. 本文 Demo 创建的 Lambda 函数会使用 环境变量，中国区 Lambda 暂时不支持环境变量，请选择Global Region
-3. 本文将使用RDS MySQL作为bookstore app的用户数据库。并使用客户端Workbench连接数据库，初始化表和数据, 请自行选择相应客户端工具
-4. 本文使用Postman 作为客户端测试工具，请自行安装
-5. 本文使用的开发语言是 Java，开发工具是 Eclipse，构建工具是 maven。如果需要在本地编译代码，请自行安装 JDK，Eclipse工具，并配置 maven
+1. 本文使用AWS控制台创建 RDS，API Gateway，Lambda 函数。假设您对使用控制台创建这些服务有一定的了解。
+2. 本文 Demo 创建的 Lambda 函数会使用 环境变量，中国区 Lambda 暂时不支持环境变量，请选择Global Region。
+3. 本文将使用RDS MySQL作为bookstore app的用户数据库。并使用客户端Workbench连接数据库，初始化表和数据, 请自行选择相应客户端工具。
+4. 本文使用Postman 作为客户端测试工具，请自行安装。
+5. 本文使用的开发语言是 Java，开发工具是 Eclipse，构建工具是 maven。如果需要在本地编译代码，请自行安装 JDK，Eclipse工具，并配置 maven。
 
 
 
@@ -32,7 +34,9 @@
 
 ## 服务介绍
 
-Amazon API Gateway 是 AWS 的一项托管服务，可以用于创建、发布、维护、监控和保护任意量级的 API，支持 REST 和 WebSocket 协议。通过 API Gateway，用户可以很容易的集成用户的后端服务，这个服务可以是 AWS 的相关托管服务，比如 Lambda 或者 S3，也可以用户运行在 EC2 中的自有服务。API Gateway 可以处理接受和处理多达数十万个并发请求，包括流量管理、授权和访问控制、监控以及 API 版本管理。
+Amazon API Gateway 是 AWS 的一项托管服务，可以**用于创建、发布、维护、监控和保护任意量级的 API，支持 REST 和 WebSocket 协议**。
+
+通过 API Gateway，用户可以很容易的集成用户的后端服务，这个服务可以是 AWS 的相关托管服务，比如 Lambda 或者 S3，也可以用户运行在 EC2 中的自有服务。API Gateway 可以处理接受和处理多达数十万个并发请求，包括**流量管理、授权和访问控制、监控以及 API 版本管理**。
 
 AWS Lambda 是一项无服务器计算服务，用户无需配置和管理服务器，只需要上传代码即可以运行代码。AWS Lamba 支持自动说法，支持每秒数千个并发请求。
 
